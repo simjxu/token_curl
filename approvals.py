@@ -5,12 +5,13 @@ import pexpect
 import yaml
 import threading
 
+# Python script looks for a "credentials.yaml" and a "links.yaml" file.
+
 ACCNT_NAME = None
 PW = None
 DAW_TOKEN = None
 LINK = None
 CLI_CMD = None
-
 
 def load_ymlFile():
   # Load the credentials
