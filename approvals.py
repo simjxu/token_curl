@@ -15,21 +15,25 @@ CLI_CMD = None
 
 def load_ymlFile():
   # Load the credentials
-  with open("credentials.yaml", 'r') as stream:
+  with open('credentials.yaml', 'r') as stream:
     loaded_creds = yaml.safe_load(stream)
   global ACCNT_NAME
   ACCNT_NAME = loaded_creds['account_name']
   global PW
   PW = loaded_creds['password']
-
+  
   # Load the links
-  with open("links.yaml", 'r') as stream:
+  with open('links.yaml', 'r') as stream:
     loaded_links = yaml.safe_load(stream)
   global LINK
   LINK = loaded_links['Link1']['link']
   global CLI_CMD
   CLI_CMD = loaded_links['Link1']['cli']
 
+  # Load current token
+  with open('token.txt', 'r') as f:
+    global DAW_TOKEN
+    DAW_TOKEN = f.readline()
 
 def gen_token():
 
@@ -40,7 +44,12 @@ def gen_token():
   child.expect('DAW.*')
   global DAW_TOKEN 
   DAW_TOKEN = child.after[:-2].decode()     # :-2 removes the newline characters, decode() converts byte to string
-  print(DAW_TOKEN)
+
+  # Write to text file
+  with open('token.txt', 'w') as f:
+    f.write(DAW_TOKEN)
+
+  # print(DAW_TOKEN)
 
 def curl_get():
 
@@ -69,22 +78,32 @@ def curl_get():
   print(data)
 
 def main():
-  # Load the YAML files
-  thread = threading.Thread(target=load_ymlFile)
-  thread.start()
+  # # Only needed if we decide to thread
+  # # Load the YAML files
+  # thread = threading.Thread(target=load_ymlFile)
+  # thread.start()
 
-  # wait until thread is complete
-  thread.join()
+  # # wait until thread is complete
+  # thread.join()
   
-  # Generate a token
-  thread = threading.Thread(target=gen_token)
-  thread.start()
+  # # Generate a token
+  # thread = threading.Thread(target=gen_token)
+  # thread.start()
 
-  # wait until thread is complete
-  thread.join()
+  # # wait until thread is complete
+  # thread.join()
 
-  # Create GET request to the target link
-  curl_get()
+  # # Create GET request to the target link
+  # curl_get()
+
+  load_ymlFile()
+
+  # First try to use the existing token, if it doesn't work, generate a new token. This saves some time
+  try:
+    curl_get()
+  except:
+    gen_token()
+    curl_get()
 
 if __name__ == '__main__':
     main()
