@@ -1,4 +1,4 @@
-from json import load
+import json
 import requests
 import time
 import pexpect
@@ -7,11 +7,15 @@ import threading
 
 # Python script looks for a "credentials.yaml" and a "links.yaml" file.
 
+# Credential and HTTP globals
 ACCNT_NAME = None
 PW = None
 DAW_TOKEN = None
 LINK = None
 CLI_CMD = None
+
+# JSON file specific globals
+APPROVERS = {}
 
 def load_ymlFile():
   # Load the credentials
@@ -34,6 +38,13 @@ def load_ymlFile():
   with open('token.txt', 'r') as f:
     global DAW_TOKEN
     DAW_TOKEN = f.readline()
+  
+  # Load approver ids
+  file = open('approvers.yaml','r')
+  loaded_approvers = yaml.safe_load(file)
+  global APPROVERS
+  for key in loaded_approvers:
+    APPROVERS[loaded_approvers[key]['id']] = loaded_approvers[key]['name']
 
 def gen_token():
 
@@ -74,36 +85,30 @@ def curl_get():
   }
 
   response = requests.get(LINK, headers=headers, cookies=cookies)
-  data = response.json()
-  print(data)
+  return response.json()
+
+def get_approver_status(jsondata):
+  global APPROVERS
+  for item in jsondata['included']:
+    if item['type'] == 'approvals' and item['attributes']['status'] != 'approved':
+      print(item['attributes']['attachment_name'])
+      for approver in item['attributes']['approval_statuses_compact']:
+        print(APPROVERS[approver['user_role_id']] + ': ' + approver['status'])
+
 
 def main():
-  # # Only needed if we decide to thread
-  # # Load the YAML files
-  # thread = threading.Thread(target=load_ymlFile)
-  # thread.start()
-
-  # # wait until thread is complete
-  # thread.join()
-  
-  # # Generate a token
-  # thread = threading.Thread(target=gen_token)
-  # thread.start()
-
-  # # wait until thread is complete
-  # thread.join()
-
-  # # Create GET request to the target link
-  # curl_get()
 
   load_ymlFile()
 
   # First try to use the existing token, if it doesn't work, generate a new token. This saves some time
   try:
-    curl_get()
+    json_output = curl_get()
   except:
     gen_token()
-    curl_get()
+    json_output = curl_get()
+  
+  # Second parse the json data for unapproved approvals, and print approver status
+  get_approver_status(json_output)
 
 if __name__ == '__main__':
     main()
