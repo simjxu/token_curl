@@ -108,13 +108,13 @@ def get_approver_status(jsondata):
       if (datetime.today() - entry_date).days < 7:
         print(f"{bcolors.YELLOW}{item['attributes']['attachment_name']}{bcolors.HEADER}")
       else:
-        print(f"{bcolors.HEADER}item['attributes']['attachment_name']{bcolors.HEADER}")
+        print(f"{bcolors.HEADER}{item['attributes']['attachment_name']}{bcolors.HEADER}")
       
       for approver in item['attributes']['approval_statuses_compact']:
         if (datetime.today() - entry_date).days <= 7:
           print(f"{bcolors.YELLOW}{APPROVERS[approver['user_role_id']] + ': ' + approver['status']}{bcolors.HEADER}")
         else:
-          print(f"{bcolors.HEADER}APPROVERS[approver['user_role_id']] + ': ' + approver['status']{bcolors.HEADER}")
+          print(f"{bcolors.HEADER}{APPROVERS[approver['user_role_id']] + ': ' + approver['status']}{bcolors.HEADER}")
       print("-------------------------------------------------------")
 
 
