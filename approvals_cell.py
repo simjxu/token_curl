@@ -4,8 +4,21 @@ import time
 import pexpect
 import yaml
 import threading
+from datetime import datetime
 
 # Python script looks for a "credentials.yaml" and a "links.yaml" file.
+
+# For colors being printed out
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 # Credential and HTTP globals
 ACCNT_NAME = None
@@ -30,9 +43,9 @@ def load_ymlFile():
   with open('links.yaml', 'r') as stream:
     loaded_links = yaml.safe_load(stream)
   global LINK
-  LINK = loaded_links['Link1']['link']
+  LINK = loaded_links['Link2']['link']
   global CLI_CMD
-  CLI_CMD = loaded_links['Link1']['cli']
+  CLI_CMD = loaded_links['Link2']['cli']
 
   # Load current token
   with open('token.txt', 'r') as f:
@@ -91,9 +104,18 @@ def get_approver_status(jsondata):
   global APPROVERS
   for item in jsondata['included']:
     if item['type'] == 'approvals' and item['attributes']['status'] != 'approved':
-      print(item['attributes']['attachment_name'])
+      entry_date = datetime.strptime(item['attributes']['created_at'],"%Y-%m-%dT%H:%M:%S.%fZ")
+      if (datetime.today() - entry_date).days < 7:
+        print(f"{bcolors.YELLOW}{item['attributes']['attachment_name']}{bcolors.HEADER}")
+      else:
+        print(f"{bcolors.HEADER}item['attributes']['attachment_name']{bcolors.HEADER}")
+      
       for approver in item['attributes']['approval_statuses_compact']:
-        print(APPROVERS[approver['user_role_id']] + ': ' + approver['status'])
+        if (datetime.today() - entry_date).days <= 7:
+          print(f"{bcolors.YELLOW}{APPROVERS[approver['user_role_id']] + ': ' + approver['status']}{bcolors.HEADER}")
+        else:
+          print(f"{bcolors.HEADER}APPROVERS[approver['user_role_id']] + ': ' + approver['status']{bcolors.HEADER}")
+      print("-------------------------------------------------------")
 
 
 def main():
