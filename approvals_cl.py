@@ -103,18 +103,20 @@ def curl_get():
 def get_approver_status(jsondata):
   global APPROVERS
   for item in jsondata['included']:
-    if item['type'] == 'approvals' and item['attributes']['status'] != 'approved':
+    if item['type'] == 'approvals' and item['attributes']['status'] == 'available' and \
+      len(item['attributes']['approval_statuses_compact']) != 0:
+
       entry_date = datetime.strptime(item['attributes']['created_at'],"%Y-%m-%dT%H:%M:%S.%fZ")
       if (datetime.today() - entry_date).days < 7:
         print(f"{bcolors.YELLOW}{item['attributes']['attachment_name']}{bcolors.HEADER}")
       else:
-        print(f"{bcolors.HEADER}item['attributes']['attachment_name']{bcolors.HEADER}")
+        print(f"{bcolors.HEADER}{item['attributes']['attachment_name']}{bcolors.HEADER}")
       
       for approver in item['attributes']['approval_statuses_compact']:
         if (datetime.today() - entry_date).days <= 7:
           print(f"{bcolors.YELLOW}{APPROVERS[approver['user_role_id']] + ': ' + approver['status']}{bcolors.HEADER}")
         else:
-          print(f"{bcolors.HEADER}APPROVERS[approver['user_role_id']] + ': ' + approver['status']{bcolors.HEADER}")
+          print(f"{bcolors.HEADER}{APPROVERS[approver['user_role_id']] + ': ' + approver['status']}{bcolors.HEADER}")
       print("-------------------------------------------------------")
 
 
@@ -129,7 +131,7 @@ def main():
     gen_token()
     json_output = curl_get()
   
-  print(json_output)
+  # print(json_output)
 
   # Second parse the json data for unapproved approvals, and print approver status
   get_approver_status(json_output)
