@@ -105,21 +105,25 @@ def curl_get():
 def get_approver_status(jsondata):
   global APPROVERS
   for item in jsondata['included']:
-    if item['type'] == 'approvals' and item['attributes']['status'] == 'available' and \
-      len(item['attributes']['approval_statuses_compact']) != 0:
-
-      entry_date = datetime.strptime(item['attributes']['created_at'],"%Y-%m-%dT%H:%M:%S.%fZ")
-      if (datetime.today() - entry_date).days < 7:
-        print(f"{bcolors.YELLOW}{item['attributes']['attachment_name']}{bcolors.HEADER}")
-      else:
-        print(f"{bcolors.HEADER}{item['attributes']['attachment_name']}{bcolors.HEADER}")
-      
-      for approver in item['attributes']['approval_statuses_compact']:
-        if (datetime.today() - entry_date).days <= 7:
-          print(f"{bcolors.YELLOW}{APPROVERS[approver['user_role_id']] + ': ' + approver['status']}{bcolors.HEADER}")
+    if item['type'] == 'approvals' and len(item['attributes']['approval_statuses_compact']) != 0:
+      isPendingApproval = False
+      for entry in item['attributes']['approval_statuses_compact']:
+        if entry['status'] == 'available':
+          isPendingApproval = True
+          break
+      if isPendingApproval:
+        entry_date = datetime.strptime(item['attributes']['created_at'],"%Y-%m-%dT%H:%M:%S.%fZ")
+        if (datetime.today() - entry_date).days < 7:
+          print(f"{bcolors.YELLOW}{item['attributes']['attachment_name']}{bcolors.HEADER}")
         else:
-          print(f"{bcolors.HEADER}{APPROVERS[approver['user_role_id']] + ': ' + approver['status']}{bcolors.HEADER}")
-      print("-------------------------------------------------------")
+          print(f"{bcolors.HEADER}{item['attributes']['attachment_name']}{bcolors.HEADER}")
+        
+        for approver in item['attributes']['approval_statuses_compact']:
+          if (datetime.today() - entry_date).days <= 7:
+            print(f"{bcolors.YELLOW}{APPROVERS[approver['user_role_id']] + ': ' + approver['status']}{bcolors.HEADER}")
+          else:
+            print(f"{bcolors.HEADER}{APPROVERS[approver['user_role_id']] + ': ' + approver['status']}{bcolors.HEADER}")
+        print("-------------------------------------------------------")
 
 
 def main():
