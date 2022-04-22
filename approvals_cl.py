@@ -5,8 +5,12 @@ import pexpect
 import yaml
 import threading
 from datetime import datetime
+import os
 
 # Python script looks for a "credentials.yaml" and a "links.yaml" file.
+
+# Change to current directory so that it works from a new terminal
+os.chdir(os.path.dirname(__file__))
 
 # For colors being printed out
 class bcolors:
@@ -32,7 +36,7 @@ APPROVERS = {}
 
 def load_ymlFile():
   # Load the credentials
-  with open('credentials.yaml', 'r') as stream:
+  with open('./credentials.yaml', 'r') as stream:
     loaded_creds = yaml.safe_load(stream)
   global ACCNT_NAME
   ACCNT_NAME = loaded_creds['account_name']
@@ -40,7 +44,7 @@ def load_ymlFile():
   PW = loaded_creds['password']
   
   # Load the links
-  with open('links.yaml', 'r') as stream:
+  with open('./links.yaml', 'r') as stream:
     loaded_links = yaml.safe_load(stream)
   global LINK
   LINK = loaded_links['Link2']['link']
@@ -48,7 +52,7 @@ def load_ymlFile():
   CLI_CMD = loaded_links['Link2']['cli']
 
   # Load current token
-  with open('token.txt', 'r') as f:
+  with open('./token.txt', 'r') as f:
     global DAW_TOKEN
     DAW_TOKEN = f.readline()
   
@@ -70,7 +74,7 @@ def gen_token():
   DAW_TOKEN = child.after[:-2].decode()     # :-2 removes the newline characters, decode() converts byte to string
 
   # Write to text file
-  with open('token.txt', 'w') as f:
+  with open('./token.txt', 'w') as f:
     f.write(DAW_TOKEN)
 
   # print(DAW_TOKEN)
@@ -78,8 +82,6 @@ def gen_token():
 def curl_get():
 
   cookies = {
-      'dslang': 'US-EN',
-      'geo': 'US',
       'acack': DAW_TOKEN
   }
 
